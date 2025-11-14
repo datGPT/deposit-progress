@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Deposit – Progress Thermometer</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #020617;
+      --accent: #ef4444;
+      --accent-soft: rgba(248, 113, 113, 0.15);
+      --text-main: #f9fafb;
+      --text-muted: #9ca3af;
+      --border-subtle: #1f2937;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        sans-serif;
+      background: radial-gradient(circle at top, #1f2937, #020617);
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+    }
+
+    .card {
+      background: rgba(2, 6, 23, 0.95);
+      border-radius: 1.5rem;
+      border: 1px solid var(--border-subtle);
+      box-shadow: 0 22px 60px rgba(15, 23, 42, 0.9);
+      max-width: 900px;
+      width: 100%;
+      padding: 2rem 2.5rem;
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+      gap: 2rem;
+    }
+
+    @media (max-width: 768px) {
+      .card {
+        grid-template-columns: 1fr;
+        padding: 1.75rem 1.5rem;
+      }
+    }
+
+    .card-header {
+      margin-bottom: 1rem;
+    }
+
+    .eyebrow {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--text-muted);
+      margin-bottom: 0.4rem;
+    }
+
+    h1 {
+      font-size: 1.9rem;
+      font-weight: 700;
+      line-height: 1.2;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    .spark {
+      font-size: 1.4rem;
+      color: var(--accent);
+    }
+
+    .subtitle {
+      margin-top: 0.75rem;
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      max-width: 34rem;
+    }
+
+    .metrics {
+      margin-top: 1.5rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.25rem;
+    }
+
+    .metric {
+      padding: 0.75rem 0.9rem;
+      border-radius: 0.9rem;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(55, 65, 81, 0.7);
+      min-width: 8rem;
+    }
+
+    .metric-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 0.3rem;
+    }
+
+    .metric-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+
+    .metric-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.15rem;
+    }
+
+    /* Thermometer layout */
+    .thermo-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .thermo-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .thermo-label-top {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+    }
+
+    .thermo-label-top span {
+      display: block;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: var(--text-main);
+      margin-top: 0.12rem;
+    }
+
+    .thermo {
+      position: relative;
+      width: 80px;
+      height: 260px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0;
+    }
+
+    /* Bulb */
+    .thermo-bulb {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 20%, #fecaca, var(--accent));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow:
+        0 0 0 4px #111827,
+        0 18px 35px rgba(0, 0, 0, 0.65);
+      position: relative;
+      z-index: 2;
+    }
+
+    .thermo-bulb-inner {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 20%, #fee2e2, #b91c1c);
+      box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.35);
+    }
+
+    /* Stem */
+    .thermo-stem-shell {
+      position: absolute;
+      bottom: 48px;
+      width: 26px;
+      height: 170px;
+      border-radius: 999px;
+      background: linear-gradient(to bottom, #111827, #020617);
+      box-shadow:
+        inset 0 0 0 1px #374151,
+        0 8px 15px rgba(0, 0, 0, 0.65);
+      overflow: hidden;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 4px;
+    }
+
+    .thermo-stem-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.95);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .thermo-fill {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      height: 0%;
+      background: linear-gradient(to top, #ef4444, #fecaca);
+      box-shadow: 0 -8px 16px rgba(248, 113, 113, 0.55);
+      transition: height 1.4s cubic-bezier(0.22, 0.8, 0.25, 1);
+    }
+
+    .thermo-stem-inner::before {
+      content: "";
+      position: absolute;
+      top: 12px;
+      left: 45%;
+      width: 30%;
+      height: 40%;
+      background: linear-gradient(
+        to bottom,
+        rgba(248, 250, 252, 0.35),
+        transparent
+      );
+      border-radius: 999px;
+      opacity: 0.45;
+      pointer-events: none;
+    }
+
+    .thermo-percent-tag {
+      margin-top: 0.6rem;
+      font-size: 0.85rem;
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      border: 1px solid rgba(248, 113, 113, 0.6);
+      background: radial-gradient(circle at top, var(--accent-soft), transparent);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 12px 30px rgba(15, 23, 42, 0.85);
+    }
+
+    .thermo-percent-tag strong {
+      font-weight: 700;
+      color: #fecaca;
+    }
+
+    .thermo-percent-tag span {
+      color: var(--text-muted);
+      margin-left: 0.2rem;
+    }
+
+    .footnote {
+      grid-column: 1 / -1;
+      margin-top: 0.75rem;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .progress-bar {
+      position: relative;
+      margin-top: 1.75rem;
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: radial-gradient(circle at top left, #1f2937, #020617);
+      border: 1px solid rgba(55, 65, 81, 0.7);
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0;
+      border-radius: inherit;
+      background: linear-gradient(to right, #ef4444, #f97316);
+      box-shadow: 0 0 18px rgba(248, 113, 113, 0.55);
+      transition: width 1.4s cubic-bezier(0.22, 0.8, 0.25, 1);
+    }
+
+    .progress-marker {
+      position: absolute;
+      right: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <section>
+      <div class="card-header">
+        <div class="eyebrow">Fundraising Progress</div>
+        <h1>
+          <span class="spark">⟡</span>
+          <span id="title-text">Deposit</span>
+        </h1>
+        <p class="subtitle" id="subtitle-text" style="display:none;"></p>
+      </div>
+
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-label">Current Total</div>
+          <div class="metric-value" id="current-amount">$0</div>
+          <div class="metric-sub" id="current-note">So far</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Goal</div>
+          <div class="metric-value" id="goal-amount">$0</div>
+          <div class="metric-sub">Target</div>
+        </div>
+        <div class="metric">
+          <div class="metric-label">Progress</div>
+          <div class="metric-value" id="progress-percent">0%</div>
+          <div class="metric-sub" id="progress-note">On our way</div>
+        </div>
+      </div>
+
+      <div class="progress-bar">
+        <div class="progress-fill" id="progress-bar-fill"></div>
+        <div class="progress-marker" id="progress-marker-text">0% of goal</div>
+      </div>
+    </section>
+
+    <section class="thermo-container">
+      <div class="thermo-wrapper">
+        <div class="thermo-label-top">
+          Goal
+          <span id="goal-label">$0</span>
+        </div>
+        <div class="thermo">
+          <div class="thermo-stem-shell">
+            <div class="thermo-stem-inner">
+              <div class="thermo-fill" id="thermo-fill"></div>
+            </div>
+          </div>
+          <div class="thermo-bulb">
+            <div class="thermo-bulb-inner"></div>
+          </div>
+        </div>
+        <div class="thermo-percent-tag">
+          <strong id="percent-chip">0%</strong>
+          <span>funded</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="footnote">
+      <span id="footnote-main">
+        Tip: Edit <code>currentAmount</code> and <code>goalAmount</code> in the script to
+        update this page.
+      </span>
+      <span>
+        Last updated: <span id="last-updated"></span>
+      </span>
+    </div>
+  </main>
+
+  <script>
+    // ================================
+    // CONFIG – EDIT THESE VALUES
+    // ================================
+    const goalAmount = 200000;       // target
+    const currentAmount = 80000;     // current savings / funds
+    const title = "Deposit";
+    const subtitle = "";             // no subtitle
+
+    // ================================
+    // HELPER FUNCTIONS
+    // ================================
+    function formatCurrency(amount) {
+      return new Intl.NumberFormat("en-NZ", {
+        style: "currency",
+        currency: "NZD",
+        maximumFractionDigits: 0
+      }).format(amount);
+    }
+
+    function clamp(value, min, max) {
+      return Math.min(Math.max(value, min), max);
+    }
+
+    // ================================
+    // MAIN RENDER LOGIC
+    // ================================
+    (function initThermometer() {
+      const safeGoal = goalAmount > 0 ? goalAmount : 1;
+      const rawPercent = (currentAmount / safeGoal) * 100;
+      const percent = clamp(rawPercent, 0, 100);
+
+      const currentEl = document.getElementById("current-amount");
+      const goalEl = document.getElementById("goal-amount");
+      const goalLabelEl = document.getElementById("goal-label");
+      const progressPercentEl = document.getElementById("progress-percent");
+      const progressNoteEl = document.getElementById("progress-note");
+      const currentNoteEl = document.getElementById("current-note");
+      const thermoFillEl = document.getElementById("thermo-fill");
+      const percentChipEl = document.getElementById("percent-chip");
+      const progressBarFillEl = document.getElementById("progress-bar-fill");
+      const progressMarkerTextEl = document.getElementById("progress-marker-text");
+      const titleTextEl = document.getElementById("title-text");
+      const subtitleTextEl = document.getElementById("subtitle-text");
+      const lastUpdatedEl = document.getElementById("last-updated");
+      const footnoteMainEl = document.getElementById("footnote-main");
+
+      // Text content
+      titleTextEl.textContent = title;
+
+      if (subtitle && subtitle.trim().length > 0) {
+        subtitleTextEl.textContent = subtitle;
+        subtitleTextEl.style.display = "block";
+      } else {
+        subtitleTextEl.style.display = "none";
+      }
+
+      currentEl.textContent = formatCurrency(currentAmount);
+      goalEl.textContent = formatCurrency(goalAmount);
+      goalLabelEl.textContent = formatCurrency(goalAmount);
+
+      const displayPercent = Math.round(percent);
+      const percentText = `${displayPercent}%`;
+      progressPercentEl.textContent = percentText;
+      percentChipEl.textContent = percentText;
+      progressMarkerTextEl.textContent = `${percentText} of goal`;
+
+      if (rawPercent >= 100) {
+        progressNoteEl.textContent = "Goal reached 🎉";
+        currentNoteEl.textContent = "Amazing!";
+      } else if (rawPercent >= 75) {
+        progressNoteEl.textContent = "Almost there!";
+        currentNoteEl.textContent = "Final stretch";
+      } else if (rawPercent >= 40) {
+        progressNoteEl.textContent = "Over halfway";
+        currentNoteEl.textContent = "Nice progress";
+      } else if (rawPercent > 0) {
+        progressNoteEl.textContent = "Off to a good start";
+        currentNoteEl.textContent = "First contributions";
+      } else {
+        progressNoteEl.textContent = "Waiting for the first contribution";
+        currentNoteEl.textContent = "Not started yet";
+      }
+
+      // Fill animations
+      requestAnimationFrame(() => {
+        thermoFillEl.style.height = `${percent}%`;
+        progressBarFillEl.style.width = `${percent}%`;
+      });
+
+      // Last updated text
+      const now = new Date();
+      lastUpdatedEl.textContent = now.toLocaleString("en-NZ", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+
+      // Small hint
+      footnoteMainEl.innerHTML =
+        'Tip: Edit <code>currentAmount</code> and <code>goalAmount</code> in the script to update this page, or wire them up to real data later.';
+    })();
+  </script>
+</body>
+</html>
