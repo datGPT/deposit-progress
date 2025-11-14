@@ -354,8 +354,7 @@
 
     <section class="thermo-container">
       <div class="thermo-wrapper">
-
-        <!-- TICKS ADDED HERE -->
+        <!-- TICKS -->
         <div class="thermo-ticks" id="thermo-ticks"></div>
 
         <div class="thermo-label-top">
@@ -390,12 +389,16 @@
 
   <script>
     // ================================
-    // CONFIG – EDIT THESE VALUES
+    // DEFAULT CONFIG (fallback)
     // ================================
-    const goalAmount = 200000;
-    const currentAmount = 80000;
-    const title = "Deposit";
-    const subtitle = "";
+    const DEFAULT_CONFIG = {
+      goalAmount: 200000,
+      currentAmount: 80000,
+      title: "Deposit",
+      subtitle: ""
+    };
+
+    const CONFIG_URL = "config.json"; // file in the same repo/root
 
     function formatCurrency(amount) {
       return new Intl.NumberFormat("en-NZ", {
@@ -409,7 +412,50 @@
       return Math.min(Math.max(value, min), max);
     }
 
-    (function initThermometer() {
+    async function loadConfig() {
+      try {
+        const response = await fetch(CONFIG_URL, { cache: "no-cache" });
+        if (!response.ok) throw new Error("No config.json");
+        const json = await response.json();
+
+        // Only override known fields if present
+        return {
+          goalAmount: json.goalAmount ?? DEFAULT_CONFIG.goalAmount,
+          currentAmount: json.currentAmount ?? DEFAULT_CONFIG.currentAmount,
+          title: json.title ?? DEFAULT_CONFIG.title,
+          subtitle: json.subtitle ?? DEFAULT_CONFIG.subtitle
+        };
+      } catch (e) {
+        // Fallback to defaults if anything goes wrong
+        return DEFAULT_CONFIG;
+      }
+    }
+
+    function addTicks() {
+      const ticksContainer = document.getElementById("thermo-ticks");
+      ticksContainer.innerHTML = "";
+      for (let i = 100; i >= 10; i -= 10) {
+        const tick = document.createElement("div");
+        tick.className = "thermo-tick";
+
+        const line = document.createElement("div");
+        line.className = "thermo-tick-line";
+
+        const label = document.createElement("div");
+        label.textContent = `${i}%`;
+
+        tick.appendChild(line);
+        tick.appendChild(label);
+        ticksContainer.appendChild(tick);
+      }
+    }
+
+    async function initThermometer() {
+      const config = await loadConfig();
+      const { goalAmount, currentAmount, title, subtitle } = config;
+
+      addTicks();
+
       const safeGoal = goalAmount > 0 ? goalAmount : 1;
       const rawPercent = (currentAmount / safeGoal) * 100;
       const percent = clamp(rawPercent, 0, 100);
@@ -417,7 +463,7 @@
       document.getElementById("title-text").textContent = title;
 
       const subtitleEl = document.getElementById("subtitle-text");
-      if (subtitle.trim().length > 0) {
+      if (subtitle && subtitle.trim().length > 0) {
         subtitleEl.textContent = subtitle;
         subtitleEl.style.display = "block";
       } else {
@@ -467,26 +513,9 @@
           hour: "2-digit",
           minute: "2-digit"
         });
+    }
 
-      // ================================
-      // ADD TICK MARKS (10% increments)
-      // ================================
-      const ticksContainer = document.getElementById("thermo-ticks");
-      for (let i = 100; i >= 10; i -= 10) {
-        const tick = document.createElement("div");
-        tick.className = "thermo-tick";
-
-        const line = document.createElement("div");
-        line.className = "thermo-tick-line";
-
-        const label = document.createElement("div");
-        label.textContent = `${i}%`;
-
-        tick.appendChild(line);
-        tick.appendChild(label);
-        ticksContainer.appendChild(tick);
-      }
-    })();
+    initThermometer();
   </script>
 </body>
 </html>
