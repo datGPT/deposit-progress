@@ -154,7 +154,7 @@
     .thermo {
       position: relative;
       width: 80px;
-      height: 260px;
+      height: 240px;
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -162,20 +162,18 @@
       gap: 0;
     }
 
-    /* Tick marks container */
+    /* Tick marks container (aligned with stem height) */
     .thermo-ticks {
       position: absolute;
       left: -45px;
-      top: 48px;
-      height: 170px;
+      top: 38px;          /* matches stem bottom offset */
+      height: 170px;      /* same as stem height */
       width: 40px;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
       pointer-events: none;
     }
 
     .thermo-tick {
+      position: absolute;
       display: flex;
       align-items: center;
       gap: 6px;
@@ -189,34 +187,34 @@
       background: #4b5563;
     }
 
-    /* Bulb */
+    /* Bulb – smaller now */
     .thermo-bulb {
-      width: 80px;
-      height: 80px;
+      width: 60px;
+      height: 60px;
       border-radius: 50%;
       background: radial-gradient(circle at 30% 20%, #fecaca, var(--accent));
       display: flex;
       align-items: center;
       justify-content: center;
       box-shadow:
-        0 0 0 4px #111827,
-        0 18px 35px rgba(0, 0, 0, 0.65);
+        0 0 0 3px #111827,
+        0 12px 25px rgba(0, 0, 0, 0.6);
       position: relative;
       z-index: 2;
     }
 
     .thermo-bulb-inner {
-      width: 44px;
-      height: 44px;
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
       background: radial-gradient(circle at 30% 20%, #fee2e2, #b91c1c);
-      box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.35);
+      box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.35);
     }
 
     /* Stem */
     .thermo-stem-shell {
       position: absolute;
-      bottom: 48px;
+      bottom: 38px;       /* lowered to sit nicely above smaller bulb */
       width: 26px;
       height: 170px;
       border-radius: 999px;
@@ -354,7 +352,7 @@
 
     <section class="thermo-container">
       <div class="thermo-wrapper">
-        <!-- TICKS -->
+        <!-- Percentage ticks -->
         <div class="thermo-ticks" id="thermo-ticks"></div>
 
         <div class="thermo-label-top">
@@ -418,7 +416,6 @@
         if (!response.ok) throw new Error("No config.json");
         const json = await response.json();
 
-        // Only override known fields if present
         return {
           goalAmount: json.goalAmount ?? DEFAULT_CONFIG.goalAmount,
           currentAmount: json.currentAmount ?? DEFAULT_CONFIG.currentAmount,
@@ -426,7 +423,6 @@
           subtitle: json.subtitle ?? DEFAULT_CONFIG.subtitle
         };
       } catch (e) {
-        // Fallback to defaults if anything goes wrong
         return DEFAULT_CONFIG;
       }
     }
@@ -434,7 +430,9 @@
     function addTicks() {
       const ticksContainer = document.getElementById("thermo-ticks");
       ticksContainer.innerHTML = "";
-      for (let i = 100; i >= 10; i -= 10) {
+
+      // Place ticks at 10,20,...,100% along the stem height
+      for (let p = 10; p <= 100; p += 10) {
         const tick = document.createElement("div");
         tick.className = "thermo-tick";
 
@@ -442,7 +440,11 @@
         line.className = "thermo-tick-line";
 
         const label = document.createElement("div");
-        label.textContent = `${i}%`;
+        label.textContent = `${p}%`;
+
+        // position: 100% at top, 10% near bottom
+        const offsetFromTop = 100 - p; // percentage of container height
+        tick.style.top = offsetFromTop + "%";
 
         tick.appendChild(line);
         tick.appendChild(label);
