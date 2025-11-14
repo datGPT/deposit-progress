@@ -162,36 +162,37 @@
       gap: 0;
     }
 
-    /* Tick marks container (aligned with stem height) */
-    .thermo-ticks {
-      position: absolute;
-      left: -45px;
-      top: 38px;          /* matches stem bottom offset */
-      height: 170px;      /* same as stem height */
-      width: 40px;
-      pointer-events: none;
-    }
+/* Tick marks container (aligned with INNER stem height) */
+.thermo-ticks {
+  position: absolute;
+  left: -45px;
+  top: 36px;        /* align with inner stem top */
+  height: 162px;    /* same as inner stem height (170 - 2*4px padding) */
+  width: 40px;
+  pointer-events: none;
+}
 
-    .thermo-tick {
-      position: absolute;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 0.7rem;
-      color: var(--text-muted);
-    }
+.thermo-tick {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
 
-    .thermo-tick-line {
-      width: 12px;
-      height: 1px;
-      background: #4b5563;
-    }
+.thermo-tick-line {
+  width: 12px;
+  height: 1px;
+  background: #4b5563;
+}
+
 
     /* Bulb – smaller now */
     .thermo-bulb {
       width: 40px;
       height: 40px;
-      border-radius: 20%;
+      border-radius: 50%;
       background: radial-gradient(circle at 30% 20%, #fecaca, var(--accent));
       display: flex;
       align-items: center;
@@ -204,8 +205,8 @@
     }
 
     .thermo-bulb-inner {
-      width: 34px;
-      height: 34px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
       background: radial-gradient(circle at 30% 20%, #fee2e2, #b91c1c);
       box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.35);
