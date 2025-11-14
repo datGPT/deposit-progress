@@ -125,6 +125,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
+      position: relative;
     }
 
     .thermo-wrapper {
@@ -132,6 +133,7 @@
       flex-direction: column;
       align-items: center;
       gap: 0.5rem;
+      position: relative;
     }
 
     .thermo-label-top {
@@ -158,6 +160,33 @@
       align-items: center;
       justify-content: flex-end;
       gap: 0;
+    }
+
+    /* Tick marks container */
+    .thermo-ticks {
+      position: absolute;
+      left: -45px;
+      top: 48px;
+      height: 170px;
+      width: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      pointer-events: none;
+    }
+
+    .thermo-tick {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+
+    .thermo-tick-line {
+      width: 12px;
+      height: 1px;
+      background: #4b5563;
     }
 
     /* Bulb */
@@ -222,23 +251,6 @@
       transition: height 1.4s cubic-bezier(0.22, 0.8, 0.25, 1);
     }
 
-    .thermo-stem-inner::before {
-      content: "";
-      position: absolute;
-      top: 12px;
-      left: 45%;
-      width: 30%;
-      height: 40%;
-      background: linear-gradient(
-        to bottom,
-        rgba(248, 250, 252, 0.35),
-        transparent
-      );
-      border-radius: 999px;
-      opacity: 0.45;
-      pointer-events: none;
-    }
-
     .thermo-percent-tag {
       margin-top: 0.6rem;
       font-size: 0.85rem;
@@ -266,7 +278,7 @@
       font-size: 0.75rem;
       color: var(--text-muted);
       display: flex;
-      justify-content: space-between;
+      justify-content: flex-end;
       gap: 0.75rem;
       flex-wrap: wrap;
     }
@@ -342,10 +354,15 @@
 
     <section class="thermo-container">
       <div class="thermo-wrapper">
+
+        <!-- TICKS ADDED HERE -->
+        <div class="thermo-ticks" id="thermo-ticks"></div>
+
         <div class="thermo-label-top">
           Goal
           <span id="goal-label">$0</span>
         </div>
+
         <div class="thermo">
           <div class="thermo-stem-shell">
             <div class="thermo-stem-inner">
@@ -356,6 +373,7 @@
             <div class="thermo-bulb-inner"></div>
           </div>
         </div>
+
         <div class="thermo-percent-tag">
           <strong id="percent-chip">0%</strong>
           <span>funded</span>
@@ -364,10 +382,6 @@
     </section>
 
     <div class="footnote">
-      <span id="footnote-main">
-        Tip: Edit <code>currentAmount</code> and <code>goalAmount</code> in the script to
-        update this page.
-      </span>
       <span>
         Last updated: <span id="last-updated"></span>
       </span>
@@ -378,14 +392,11 @@
     // ================================
     // CONFIG – EDIT THESE VALUES
     // ================================
-    const goalAmount = 200000;       // target
-    const currentAmount = 80000;     // current savings / funds
+    const goalAmount = 200000;
+    const currentAmount = 80000;
     const title = "Deposit";
-    const subtitle = "";             // no subtitle
+    const subtitle = "";
 
-    // ================================
-    // HELPER FUNCTIONS
-    // ================================
     function formatCurrency(amount) {
       return new Intl.NumberFormat("en-NZ", {
         style: "currency",
@@ -398,85 +409,83 @@
       return Math.min(Math.max(value, min), max);
     }
 
-    // ================================
-    // MAIN RENDER LOGIC
-    // ================================
     (function initThermometer() {
       const safeGoal = goalAmount > 0 ? goalAmount : 1;
       const rawPercent = (currentAmount / safeGoal) * 100;
       const percent = clamp(rawPercent, 0, 100);
 
-      const currentEl = document.getElementById("current-amount");
-      const goalEl = document.getElementById("goal-amount");
-      const goalLabelEl = document.getElementById("goal-label");
-      const progressPercentEl = document.getElementById("progress-percent");
-      const progressNoteEl = document.getElementById("progress-note");
-      const currentNoteEl = document.getElementById("current-note");
-      const thermoFillEl = document.getElementById("thermo-fill");
-      const percentChipEl = document.getElementById("percent-chip");
-      const progressBarFillEl = document.getElementById("progress-bar-fill");
-      const progressMarkerTextEl = document.getElementById("progress-marker-text");
-      const titleTextEl = document.getElementById("title-text");
-      const subtitleTextEl = document.getElementById("subtitle-text");
-      const lastUpdatedEl = document.getElementById("last-updated");
-      const footnoteMainEl = document.getElementById("footnote-main");
+      document.getElementById("title-text").textContent = title;
 
-      // Text content
-      titleTextEl.textContent = title;
-
-      if (subtitle && subtitle.trim().length > 0) {
-        subtitleTextEl.textContent = subtitle;
-        subtitleTextEl.style.display = "block";
+      const subtitleEl = document.getElementById("subtitle-text");
+      if (subtitle.trim().length > 0) {
+        subtitleEl.textContent = subtitle;
+        subtitleEl.style.display = "block";
       } else {
-        subtitleTextEl.style.display = "none";
+        subtitleEl.style.display = "none";
       }
 
-      currentEl.textContent = formatCurrency(currentAmount);
-      goalEl.textContent = formatCurrency(goalAmount);
-      goalLabelEl.textContent = formatCurrency(goalAmount);
+      document.getElementById("current-amount").textContent = formatCurrency(currentAmount);
+      document.getElementById("goal-amount").textContent = formatCurrency(goalAmount);
+      document.getElementById("goal-label").textContent = formatCurrency(goalAmount);
 
       const displayPercent = Math.round(percent);
       const percentText = `${displayPercent}%`;
-      progressPercentEl.textContent = percentText;
-      percentChipEl.textContent = percentText;
-      progressMarkerTextEl.textContent = `${percentText} of goal`;
+      document.getElementById("progress-percent").textContent = percentText;
+      document.getElementById("percent-chip").textContent = percentText;
+      document.getElementById("progress-marker-text").textContent = `${percentText} of goal`;
 
       if (rawPercent >= 100) {
-        progressNoteEl.textContent = "Goal reached 🎉";
-        currentNoteEl.textContent = "Amazing!";
+        document.getElementById("progress-note").textContent = "Goal reached 🎉";
+        document.getElementById("current-note").textContent = "Amazing!";
       } else if (rawPercent >= 75) {
-        progressNoteEl.textContent = "Almost there!";
-        currentNoteEl.textContent = "Final stretch";
+        document.getElementById("progress-note").textContent = "Almost there!";
+        document.getElementById("current-note").textContent = "Final stretch";
       } else if (rawPercent >= 40) {
-        progressNoteEl.textContent = "Over halfway";
-        currentNoteEl.textContent = "Nice progress";
+        document.getElementById("progress-note").textContent = "Over halfway";
+        document.getElementById("current-note").textContent = "Nice progress";
       } else if (rawPercent > 0) {
-        progressNoteEl.textContent = "Off to a good start";
-        currentNoteEl.textContent = "First contributions";
+        document.getElementById("progress-note").textContent = "Off to a good start";
+        document.getElementById("current-note").textContent = "First contributions";
       } else {
-        progressNoteEl.textContent = "Waiting for the first contribution";
-        currentNoteEl.textContent = "Not started yet";
+        document.getElementById("progress-note").textContent = "Waiting for the first contribution";
+        document.getElementById("current-note").textContent = "Not started yet";
       }
 
       // Fill animations
       requestAnimationFrame(() => {
-        thermoFillEl.style.height = `${percent}%`;
-        progressBarFillEl.style.width = `${percent}%`;
+        document.getElementById("thermo-fill").style.height = `${percent}%`;
+        document.getElementById("progress-bar-fill").style.width = `${percent}%`;
       });
 
-      // Last updated text
+      // Last updated
       const now = new Date();
-      lastUpdatedEl.textContent = now.toLocaleString("en-NZ", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
-      });
+      document.getElementById("last-updated").textContent =
+        now.toLocaleString("en-NZ", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit"
+        });
 
-      // Small hint
-      footnoteMainEl.innerHTML =
-        'Tip: Edit <code>currentAmount</code> and <code>goalAmount</code> in the script to update this page, or wire them up to real data later.';
+      // ================================
+      // ADD TICK MARKS (10% increments)
+      // ================================
+      const ticksContainer = document.getElementById("thermo-ticks");
+      for (let i = 100; i >= 10; i -= 10) {
+        const tick = document.createElement("div");
+        tick.className = "thermo-tick";
+
+        const line = document.createElement("div");
+        line.className = "thermo-tick-line";
+
+        const label = document.createElement("div");
+        label.textContent = `${i}%`;
+
+        tick.appendChild(line);
+        tick.appendChild(label);
+        ticksContainer.appendChild(tick);
+      }
     })();
   </script>
 </body>
